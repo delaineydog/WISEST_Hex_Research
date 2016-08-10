@@ -1,0 +1,243 @@
+#THIS WORKS!!!!
+#WISEST Hex research
+import turtle
+import random
+import numpy as np
+import  math
+import time
+from turtle import tracer,update
+
+
+
+class Title():
+    
+    def __init__(self, turtle, position):
+        self.title = turtle
+        self.title.penup()
+        self.title.color("LightGreen")
+        self.title.goto(position)
+        self.title.write("Hex", font = ("Bangla Sangam MN", 30))
+        self.title.goto((position[0]), (position[1] - 15))
+        self.title.write("-----", font = ("Bangla Sangam MN", 30))        
+        self.title.hideturtle()
+    
+        
+    
+class Hexagon():
+    number_of_sides = 6
+    hex_side_length = 30
+    angle = 60
+    radius = 25.9807621
+    
+    def __init__(self, turtle, position): 
+        self.hexagon = turtle
+        self.clicked = False
+        self.start_hexagon = [position[0], position[1]]
+        self.center_hexagon = [(self.start_hexagon[0]), (self.start_hexagon[1] + 30)]
+        self.draw()
+            
+    def draw(self):
+        self.hexagon.penup()
+        self.hexagon.goto(self.start_hexagon)
+        self.hexagon.pendown()
+        self.hexagon.setheading(30)
+        for i in range(Hexagon.number_of_sides): 
+            self.hexagon.forward(Hexagon.hex_side_length)
+            self.hexagon.left(Hexagon.angle)   
+        self.hexagon.penup()
+    
+    def selected(self, player_click):
+        num1 = (self.center_hexagon[0] - player_click[0])**2
+        num2 = (self.center_hexagon[1] - player_click[1])**2
+        d = math.sqrt((num1) + (num2))
+        return d < Hexagon.radius   
+        
+    
+    def stamp(self, moves):
+        self.hexagon.goto(self.center_hexagon)
+        self.hexagon.stamp()
+        self.clicked = True
+        
+class Label():
+    xlabel = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"]
+    ylabel = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]
+    xdist = 52
+    xnum = 0
+    ynum = 0
+    
+    def __init__(self, turtle, board_size, position1, position2):
+        self.label = turtle
+        self.board_size = board_size
+        self.xpos = position1
+        self.ypos = position2
+        self.label.penup()
+        self.label.color("DimGrey")
+        self.print_xlabel()
+        self.print_ylabel()
+        
+    def print_xlabel(self):
+        for i in range(self.board_size):
+            self.label.goto(self.xpos)
+            self.label.write(Label.xlabel[Label.xnum], font = ("Bangla Sangam MN", 26))
+            Label.xnum += 1
+            self.xpos[0] += 52
+            
+    def print_ylabel(self):
+        for i in range(self.board_size):
+            self.label.goto(self.ypos)
+            self.label.write(Label.ylabel[Label.ynum], font = ("Bangla Sangam MN", 26))
+            Label.ynum += 1
+            self.ypos[0] += 24
+            self.ypos[1] -= 45
+            
+
+        
+       
+        
+        
+class Board():
+    diameter = 51.9615242
+    def __init__(self, turtle, board_size, start_position, outline_position):
+        self.b = turtle
+        self.board_size = board_size
+        self.start_board = start_position
+        self.outline_start = outline_position
+        self.moves = 0
+        self.board =[]
+        self.draw_board()
+        self.outline_sides()
+        
+    def draw_board(self):
+        tracer(0)
+        for i in range(self.board_size):
+            row = []
+            for j in range(self.board_size):
+                row.append(Hexagon(self.b, self.start_board))
+                self.start_board[0] += Board.diameter
+            self.start_board[0] = self.start_board[0] - ((self.board_size) * Board.diameter) + (Board.diameter/2)
+            self.start_board[1] -= Hexagon.hex_side_length * 1.5
+            self.board.append(row)
+        update()
+       
+     
+    def selected(self,  x, y):
+        for row in self.board:
+            for hexagon in row:  
+                if hexagon.selected((x, y)) and not hexagon.clicked:
+                    self.b.color("LightGreen")
+                    self.b.shape("circle")
+                    hexagon.stamp(self.moves)
+                    self.moves += 1
+                    self.get_cmove()
+                    self.moves += 1                    
+
+                    
+    def get_cmove(self):
+        if self.moves < self.board_size**2:
+            cnum1 = random.randint(0, (self.board_size - 1))
+            cnum2 = random.randint(0, (self.board_size - 1))
+            while self.board[cnum1][cnum2].clicked == True and self.moves < self.board_size**2:
+                cnum1 = random.randint(0, (self.board_size - 1))
+                cnum2 = random.randint(0, (self.board_size - 1)) 
+            cpos = self.board[cnum1][cnum2] 
+            self.b.goto(cpos.center_hexagon)
+            cpos.clicked = True
+            self.b.color("black")
+            self.b.shape("circle")
+            self.b.stamp()
+            
+    def oleft(self):
+        self.b.left(60)
+        self.b.forward(30)
+        
+    def oright(self):
+        self.b.right(60)
+        self.b.forward(30)                
+        
+    def outline_sides(self):
+        self.b.penup()
+        self.b.pensize(5)
+        self.b.goto(self.outline_start)
+        self.b.setheading(30)
+        for i in range (4):
+            self.b.forward(30)
+            self.b.left(60)
+        self.b.right(60)
+        self.b.pendown()
+        self.b.color("black")
+        self.b.right(180)
+        self.b.forward(30)
+        self.oright()
+        for i in range (self.board_size - 1):
+            self.oleft()
+            self.oright()
+        self.b.color("LightGreen")
+        self.oright()        
+        for i in range (self.board_size - 1):
+            self.oleft()
+            self.oright()
+        self.b.color("black")
+        self.b.right(60)
+        self.b.right(60)
+        for i in range (self.board_size):
+            self.oleft()
+            self.oright()
+        self.b.color("LightGreen")
+        for i in range (self.board_size - 1):
+            self.oright()
+            self.oleft()
+        self.oright()
+        
+        self.b.penup()    
+
+
+                  
+def main():    
+    wn = turtle.Screen()
+    turtle.setup(600, 600)
+    turtle.speed(0)
+    screen = turtle.Screen()
+    turtle.hideturtle()    
+    
+    t = turtle.Turtle()
+    heading = [-280, 250]
+    name = Title(t, heading)
+    
+    b = turtle.Turtle()
+    b.color("DimGrey")
+    b.speed(0)
+    start = [-250, 150]
+    outline_start = [-250, 150]
+    size = int(input("how large would you like you board to be? "))
+    label_xposition = [-281, 196]
+    label_yposition = [-300, 160]
+    
+    board = Board(b, size, start, outline_start)
+    
+    label = Label(b, size, label_xposition,label_yposition)
+    
+    
+    
+   
+    mmoves = 0
+    
+    
+        
+    screen.onclick(board.selected)   
+
+    
+    
+
+    
+
+        
+
+
+
+
+    
+    turtle.done()
+      
+      
+    
+main()  
